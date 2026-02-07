@@ -15,24 +15,15 @@ export default function Scene({ artworks }: SceneProps) {
   return (
     <Canvas
       shadows
-      dpr={[1, 2]} // Optimizes for high-res screens (Retina)
-      camera={{ position: [0, 1.7, 6], fov: 45 }} // Lower FOV = more "cinematic" lens
-      className="w-full h-screen bg-[#111]" // Darker background for contrast
+      dpr={[1, 2]} 
+      camera={{ position: [0, 1.7, 6], fov: 45 }} 
+      className="w-full h-screen bg-[#111]" 
     >
-      {/* 1. Realistic Environment Lighting (presets: city, studio, sunset) */}
-      <Environment preset="city" background={false} />
-
-      {/* 2. Main Spotlight (Simulating gallery track lighting) */}
-      <spotLight
-        position={[0, 15, 0]}
-        angle={0.6}
-        penumbra={0.5}
-        intensity={2}
-        castShadow
-        shadow-bias={-0.0001}
-      />
-
-      <ambientLight intensity={0.4} />
+      {/* 1. Realistic Environment Lighting */}
+      <Environment preset="city" blur={1} />
+      
+      {/* 2. Main Ambient Light */}
+      <ambientLight intensity={0.2} />
 
       <Suspense fallback={null}>
         <GalleryRoom artworks={artworks} />
