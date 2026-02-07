@@ -1,106 +1,24 @@
 'use client';
 
-import { useMemo } from 'react';
-import { MeshReflectorMaterial, useTexture } from '@react-three/drei';
+import { useTexture, Text } from '@react-three/drei';
 import { ArtFrame } from './ArtFrame';
 import { Artwork } from '@/types/schema';
 import * as THREE from 'three';
 
-// ============================================================================
-// Constants & Configuration
-// ============================================================================
-
-const SIGN_IMAGE_URL =
-  'https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/background.JPEG';
-
-// Column configuration for easy customization
-const COLUMN_CONFIG = {
-  plinth: {
-    dimensions: [2, 1.5, 2] as [number, number, number],
-    color: '#ffffff',
-    roughness: 0.6,
-  },
-  shaft: {
-    radius: 0.8,
-    height: 21,
-    segments: 32,
-    color: '#ffffff',
-    roughness: 0.4,
-  },
-  capital: {
-    dimensions: [2.2, 1.5, 2.2] as [number, number, number],
-    color: '#ffffff',
-    roughness: 0.6,
-  },
-};
-
-// Sign plane configuration for easy customization
-const SIGN_PLANE_CONFIG = {
-  width: 14,
-  height: 8,
-  positionY: 14,
-  offsetFromWall: 0.6,
-  defaultColor: '#ffffff',
-  opacity: 1,
-};
-
-// Reusable material instance to reduce memory allocations
-const COLUMN_MATERIAL = new THREE.MeshStandardMaterial({
-  color: COLUMN_CONFIG.plinth.color,
-  roughness: COLUMN_CONFIG.plinth.roughness,
-});
-
-// ============================================================================
-// Components
-// ============================================================================
-
-interface ColumnProps {
-  /** Position in 3D space [x, y, z] */
-  position?: [number, number, number];
-}
-
-function Column({ position = [1, 1, 1] }: ColumnProps) {
-  // Memoize geometry to prevent recreation on re-renders
-  const plinthGeometry = useMemo(
-    () => new THREE.BoxGeometry(...COLUMN_CONFIG.plinth.dimensions), 
-    []
-  );
-
-  const shaftGeometry = useMemo(
-    () => new THREE.CylinderGeometry(
-      COLUMN_CONFIG.shaft.radius,
-      COLUMN_CONFIG.shaft.radius,
-      COLUMN_CONFIG.shaft.height,
-      COLUMN_CONFIG.shaft.segments
-    ),
-    []
-  );
-
-  const capitalGeometry = useMemo(
-    () => new THREE.BoxGeometry(...COLUMN_CONFIG.capital.dimensions),
-    []
-  );
-
+// --- STATUE COMPONENT ---
+function Statue({ url }: { url: string }) {
+  const texture = useTexture(url);
+  // Keep statue aspect ratio
+  const ratio = texture.image.width / texture.image.height;
+  const height = 12; // 12 units tall
+  
   return (
-    <group position={position}>
-      {/* Plinth (Base) */}
-      <mesh geometry={plinthGeometry} position={[0, 0.75, 0]} receiveShadow>
-        <primitive object={COLUMN_MATERIAL} attach="material" />
-      </mesh>
-
-      {/* Shaft (The main column body) */}
-      <mesh geometry={shaftGeometry} position={[0, 12, 0]} receiveShadow>
-        <meshStandardMaterial
-          color={COLUMN_CONFIG.shaft.color}
-          roughness={COLUMN_CONFIG.shaft.roughness}
-        />
-      </mesh>
-
-      {/* Capital (Top part) */}
-      <mesh geometry={capitalGeometry} position={[0, 23.25, 0]} receiveShadow>
-        <primitive object={COLUMN_MATERIAL} attach="material" />
-      </mesh>
-    </group>
+    // Place in the middle of the hall
+    <mesh position={[0, 6, 20]} rotation={[0, 0, 0]} castShadow>
+      <planeGeometry args={[height * ratio, height]} />
+      {/* transparent={true} allows the PNG background to be invisible */}
+      <meshStandardMaterial map={texture} transparent={true} alphaTest={0.5} side={THREE.DoubleSide} />
+    </mesh>
   );
 }
 
@@ -108,91 +26,52 @@ interface GalleryRoomProps {
   artworks?: Artwork[];
 }
 
-interface SignPlaneProps {
-  /** Room depth for positioning (should match GalleryRoom's ROOM_DEPTH) */
-  roomDepth?: number;
-  /** Optional custom texture URL to override default */
-  textureUrl?: string;
-  /** Callback when texture loads successfully */
-  onLoad?: () => void;
-  /** Callback when texture fails to load */
-  onError?: (error: Error) => void;
-}
-
-/**
- * SignPlane displays the studio logo/sign on the back wall of the gallery.
- * Uses useTexture for efficient texture loading with proper color space handling.
- * 
- * @example
- * <SignPlane roomDepth={160} />
- */
-function SignPlane({
-  roomDepth = 160,
-  textureUrl = SIGN_IMAGE_URL,
-  onLoad,
-  onError,
-}: SignPlaneProps) {
-  // Memoize the texture to prevent reloading on re-renders
-  const signTexture = useTexture(textureUrl, (texture) => {
-    texture.colorSpace = THREE.SRGBColorSpace;
-    onLoad?.();
-  });
-
-  // Memoize geometry to avoid recreation on re-renders
-  const planeGeometry = useMemo(
-    () => new THREE.PlaneGeometry(SIGN_PLANE_CONFIG.width, SIGN_PLANE_CONFIG.height),
-    []
-  );
-
-  // Memoize material to prevent recreation
-  const material = useMemo(
-    () =>
-      new THREE.MeshBasicMaterial({
-        map: signTexture,
-        transparent: true,
-        opacity: SIGN_PLANE_CONFIG.opacity,
-        toneMapped: false,
-      }),
-    [signTexture]
-  );
-
-  // Calculate position once (reactive to roomDepth changes)
-  const position: [number, number, number] = [
-    0,
-    SIGN_PLANE_CONFIG.positionY,
-    -roomDepth / 2 + SIGN_PLANE_CONFIG.offsetFromWall,
-  ];
-
-  return (
-    <mesh geometry={planeGeometry} position={position}>
-      <primitive object={material} attach="material" />
-    </mesh>
-  );
-}
-
 export function GalleryRoom({ artworks = [] }: GalleryRoomProps) {
-  const SPACING = 14;
-  const WIDTH = 40;
-  const WALL_HEIGHT = 28;
-  const ROOM_DEPTH = 160;
+  // --- PASTE YOUR URLS HERE ---
+  const TEXTURE_URLS = {
+    walls: 'https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/Onyx.zip',
+    floor: 'https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/WoodFloor.zip',
+    ceiling: 'https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/Ceiling.zip',
+    statue: 'https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/Statue.zip',
+  };
 
-  const lightTarget = useMemo(() => {
-    const target = new THREE.Object3D();
-    target.position.set(0, 0, 0);
-    return target;
-  }, []);
+  // Load all textures
+  const textures = useTexture(TEXTURE_URLS);
+
+  // --- TEXTURE CONFIGURATION ---
+  // 1. Wood Floor: Needs to tile frequently to look like planks
+  textures.floor.wrapS = textures.floor.wrapT = THREE.RepeatWrapping;
+  textures.floor.repeat.set(8, 30); 
+  textures.floor.colorSpace = THREE.SRGBColorSpace;
+
+  // 2. Onyx Walls: Stretch gently, high gloss
+  textures.walls.wrapS = textures.walls.wrapT = THREE.RepeatWrapping;
+  textures.walls.repeat.set(2, 4);
+  textures.walls.colorSpace = THREE.SRGBColorSpace;
+
+  // 3. Ceiling Tiles: Tile densely
+  textures.ceiling.wrapS = textures.ceiling.wrapT = THREE.RepeatWrapping;
+  textures.ceiling.repeat.set(10, 30);
+  textures.ceiling.colorSpace = THREE.SRGBColorSpace;
+
+  // --- ROOM SETUP ---
+  const SPACING = 15;
+  const WIDTH = 40;
+  const WALL_HEIGHT = 20;
+  const ROOM_DEPTH = 150;
 
   const renderArtworks = () => {
     return artworks.map((art, i) => {
       const isLeft = i % 2 === 0;
       const row = Math.floor(i / 2);
-      const zPos = 50 - row * SPACING;
+      const zPos = 50 - (row * SPACING);
 
       return (
         <ArtFrame
           key={art.id}
           artwork={art}
-          position={[isLeft ? -WIDTH / 2 + 3 : WIDTH / 2 - 3, 7, zPos]}
+          // Y=7 keeps them at eye level
+          position={[isLeft ? -WIDTH / 2 + 0.6 : WIDTH / 2 - 0.6, 7, zPos]}
           rotation={[0, isLeft ? Math.PI / 2 : -Math.PI / 2, 0]}
         />
       );
@@ -201,104 +80,51 @@ export function GalleryRoom({ artworks = [] }: GalleryRoomProps) {
 
   return (
     <group>
-      {/* --- 1. BLACK MARBLE REFLECTIVE FLOOR --- */}
+      {/* --- 1. WOOD FLOORS --- */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <planeGeometry args={[WIDTH, ROOM_DEPTH]} />
-        <MeshReflectorMaterial
-          blur={[400, 100]}
-          resolution={1024}
-          mixBlur={1}
-          mixStrength={4}
-          roughness={0.2}
-          depthScale={1}
-          minDepthThreshold={0.4}
-          maxDepthThreshold={1.4}
-          color="#050505"
-          metalness={0.8}
-          mirror={0.9}
+        <meshStandardMaterial 
+          map={textures.floor}
+          roughness={0.8} // Wood is matte/rough
+          metalness={0.1}
         />
       </mesh>
 
-      {/* --- 2. IMPOSING WALLS --- */}
-      <mesh position={[0, WALL_HEIGHT / 2, -ROOM_DEPTH / 2]} receiveShadow>
+      {/* --- 2. ONYX WALLS --- */}
+      <mesh position={[0, WALL_HEIGHT / 2, -ROOM_DEPTH / 2]}> {/* Back */}
         <boxGeometry args={[WIDTH, WALL_HEIGHT, 1]} />
-        <meshStandardMaterial color="#111" roughness={0.5} />
+        <meshStandardMaterial map={textures.walls} roughness={0.1} metalness={0.2} />
       </mesh>
-      <mesh position={[-WIDTH / 2, WALL_HEIGHT / 2, 0]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
+      
+      <Text position={[0, 12, -ROOM_DEPTH / 2 + 0.6]} fontSize={3} font="/fonts/Inter-Bold.ttf" color="white">
+        STUDIO NOUVEAU
+      </Text>
+
+      <mesh position={[-WIDTH / 2, WALL_HEIGHT / 2, 0]} rotation={[0, Math.PI / 2, 0]}> {/* Left */}
         <boxGeometry args={[ROOM_DEPTH, WALL_HEIGHT, 1]} />
-        <meshStandardMaterial color="#111" roughness={0.5} />
+        <meshStandardMaterial map={textures.walls} roughness={0.1} metalness={0.2} />
       </mesh>
-      <mesh position={[WIDTH / 2, WALL_HEIGHT / 2, 0]} rotation={[0, -Math.PI / 2, 0]} receiveShadow>
+
+      <mesh position={[WIDTH / 2, WALL_HEIGHT / 2, 0]} rotation={[0, -Math.PI / 2, 0]}> {/* Right */}
         <boxGeometry args={[ROOM_DEPTH, WALL_HEIGHT, 1]} />
-        <meshStandardMaterial color="#111" roughness={0.5} />
+        <meshStandardMaterial map={textures.walls} roughness={0.1} metalness={0.2} />
       </mesh>
 
-      {/* --- 3. ORNATE COLUMNS --- */}
-      {Array.from({ length: Math.floor(ROOM_DEPTH / SPACING) }).map((_, i) => {
-        const z = 65 - i * SPACING;
-        return (
-          <group key={i}>
-            <Column position={[-WIDTH / 2 + 2.5, 0, z]} />
-            <Column position={[WIDTH / 2 - 2.5, 0, z]} />
-          </group>
-        );
-      })}
-
-      {/* --- 4. STUDIO NOUVEAU SIGN ON BACK WALL --- */}
-      <SignPlane roomDepth={ROOM_DEPTH} />
-
-      {/* --- 5. VAULTED CEILING & LIGHTS --- */}
+      {/* --- 3. OFFICE CEILING --- */}
       <mesh position={[0, WALL_HEIGHT, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <planeGeometry args={[WIDTH, ROOM_DEPTH]} />
-        <meshStandardMaterial color="#a0a0a0" side={THREE.DoubleSide} />
-        <spotLight
-          position={[0, 0, 0]}
-          target={lightTarget}
-          intensity={10}
-          angle={0.5}
-          penumbra={0.6}
-          color="#fff8e7"
-          castShadow
-          distance={8}
-        />
-        <spotLight
-          position={[0, 0, 0]}
-          target={lightTarget}
-          intensity={10}
-          angle={0.5}
-          penumbra={0.6}
-          color="#fff8e7"
-          castShadow
-          distance={8}
-        />
-        <spotLight
-          position={[0, 0, 0]}
-          target={lightTarget}
-          intensity={10}
-          angle={0.5}
-          penumbra={0.6}
-          color="#fff8e7"
-          castShadow
-          distance={8}
-        />
+        <meshStandardMaterial map={textures.ceiling} side={THREE.DoubleSide} />
       </mesh>
 
-      {/* Central Light Strips */}
-      {Array.from({ length: 10 }).map((_, i) => (
-        <group key={i} position={[0, WALL_HEIGHT - 1, 50 - i * 15]}>
-          <mesh rotation={[Math.PI / 2, 0, 0]}>
-            <planeGeometry args={[WIDTH - 8, 1.5]} />
-            <meshBasicMaterial color="white" toneMapped={false} />
-          </mesh>
-          <rectAreaLight
-            width={WIDTH - 8}
-            height={4}
-            color="white"
-            intensity={15}
-            rotation={[-Math.PI / 2, 0, 0]}
-          />
+      {/* Lighting Panels (Office Lights) */}
+      {Array.from({ length: 15 }).map((_, i) => (
+        <group key={i} position={[0, WALL_HEIGHT - 0.1, 60 - (i * 10)]}>
+           <rectAreaLight width={WIDTH - 10} height={2} color="white" intensity={15} rotation={[-Math.PI / 2, 0, 0]} />
         </group>
       ))}
+
+      {/* --- 4. THE STATUE --- */}
+      <Statue url={TEXTURE_URLS.statue} />
 
       {renderArtworks()}
     </group>

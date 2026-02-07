@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useTexture } from '@react-three/drei';
 import { ThreeEvent } from '@react-three/fiber';
 import { Artwork } from '@/types/schema';
@@ -11,101 +11,72 @@ interface ArtFrameProps {
   artwork: Artwork;
   position: [number, number, number];
   rotation?: [number, number, number];
-  isLeftWall?: boolean;
 }
 
-export function ArtFrame({ artwork, position, rotation = [0, 0, 0], isLeftWall = false }: ArtFrameProps) {
-  const leftTarget = useMemo(() => new THREE.Object3D(), []);
-  const rightTarget = useMemo(() => new THREE.Object3D(), []);
-  const texture = useTexture(artwork.image_url, (txt) => {
-    txt.colorSpace = THREE.SRGBColorSpace;
-  });
-
+export function ArtFrame({ artwork, position, rotation = [0, 0, 0] }: ArtFrameProps) {
+  const texture = useTexture(artwork.image_url);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  
   const setActiveArtwork = useGalleryStore((state) => state.setActiveArtwork);
   const [hovered, setHover] = useState(false);
 
-  const aspectRatio = texture.image.width / texture.image.height;
-  const FRAME_HEIGHT = 3.2;
-  const FRAME_WIDTH = FRAME_HEIGHT * aspectRatio;
-  const BORDER = 0.2;
-  const DEPTH = 0.25;
+  // --- 1. PARSE "ACTUAL SIZE" FROM DB ---
+  // Default to 24x36 if missing
+  let widthInInches = 24;
+  let heightInInches = 36;
 
-  const handleClick = (e: ThreeEvent<MouseEvent>) => {
-    e.stopPropagation();
-    setActiveArtwork(artwork);
-  };
+  if (artwork.dimensions) {
+    // Look for patterns like "24x36", "24 x 36", "24 by 36"
+    const numbers = artwork.dimensions.match(/(\d+)/g);
+    if (numbers && numbers.length >= 2) {
+      widthInInches = parseInt(numbers[0]);
+      heightInInches = parseInt(numbers[1]);
+    }
+  }
 
-  // Sconce offset from frame edge (in local space: z is along wall)
-  const sconceOffset = FRAME_WIDTH / 2 + 0.8;
-  const sconceY = FRAME_HEIGHT / 2 + 0.6;
+  // --- 2. CONVERT TO 3D UNITS ---
+  // In our scene, let's say 1 unit = 10 inches for good visibility
+  const SCALE_FACTOR = 0.15; 
+  const FRAME_WIDTH = widthInInches * SCALE_FACTOR;
+  const FRAME_HEIGHT = heightInInches * SCALE_FACTOR;
+  
+  // Frame Settings
+  const BORDER = 0.5; 
+  const DEPTH = 0.3;
 
   return (
     <group position={position} rotation={rotation}>
-      {/* --- GOLD FRAME --- */}
+      
+      {/* FRAME */}
       <mesh
-        onClick={handleClick}
+        onClick={(e) => { e.stopPropagation(); setActiveArtwork(artwork); }}
         onPointerOver={() => setHover(true)}
         onPointerOut={() => setHover(false)}
       >
         <boxGeometry args={[FRAME_WIDTH + BORDER, FRAME_HEIGHT + BORDER, DEPTH]} />
-        <meshStandardMaterial
-          color={hovered ? '#f5e6b8' : '#c9a227'}
-          roughness={0.2}
-          metalness={0.9}
+        <meshStandardMaterial 
+          color={hovered ? '#ffffff' : '#D4AF37'} // Antique Gold
+          roughness={0.3}
+          metalness={0.6}
         />
       </mesh>
 
-      {/* --- PAINTING --- */}
-      <mesh position={[0, 0, DEPTH / 2 + 0.01]}>
+      {/* ARTWORK */}
+      <mesh position={[0, 0, DEPTH / 2 + 0.001]}>
         <planeGeometry args={[FRAME_WIDTH, FRAME_HEIGHT]} />
         <meshBasicMaterial map={texture} toneMapped={false} />
       </mesh>
 
-      {/* --- LEFT SCONCE (wall-mounted light beside frame) --- */}
-      <group position={[-sconceOffset, sconceY, 0.4]}>
-        <primitive object={leftTarget} position={[sconceOffset * 0.5, -sconceY * 0.8, -0.5]} />
-        <mesh castShadow>
-          <cylinderGeometry args={[0.15, 0.18, 0.5, 16]} />
-          <meshStandardMaterial color="#2a2520" roughness={0.3} metalness={0.6} />
-        </mesh>
-        <mesh position={[0, 0.3, 0.08]}>
-          <sphereGeometry args={[0.12, 16, 16]} />
-          <meshStandardMaterial color="#fff8e7" emissive="#fff0c8" emissiveIntensity={2} toneMapped={false} />
-        </mesh>
-        <spotLight
-          position={[0, 0, 0.2]}
-          target={leftTarget}
-          intensity={25}
-          angle={0.5}
-          penumbra={0.6}
-          color="#fff8e7"
-          castShadow
-          distance={8}
-        />
-      </group>
-
-      {/* --- RIGHT SCONCE --- */}
-      <group position={[sconceOffset, sconceY, 0.4]}>
-        <primitive object={rightTarget} position={[-sconceOffset * 0.5, -sconceY * 0.8, -0.5]} />
-        <mesh castShadow>
-          <cylinderGeometry args={[0.15, 0.18, 0.5, 16]} />
-          <meshStandardMaterial color="#2a2520" roughness={0.3} metalness={0.6} />
-        </mesh>
-        <mesh position={[0, 0.3, 0.08]}>
-          <sphereGeometry args={[0.12, 16, 16]} />
-          <meshStandardMaterial color="#fff8e7" emissive="#fff0c8" emissiveIntensity={2} toneMapped={false} />
-        </mesh>
-        <spotLight
-          position={[0, 0, 0.2]}
-          target={rightTarget}
-          intensity={25}
-          angle={0.5}
-          penumbra={0.6}
-          color="#fff8e7"
-          castShadow
-          distance={8}
-        />
-      </group>
+      {/* LIGHTING */}
+      <spotLight
+        position={[0, 5, 5]} 
+        target-position={[0, 0, 0]} 
+        intensity={30}
+        angle={0.5}
+        penumbra={0.4}
+        distance={10}
+        castShadow
+      />
     </group>
   );
 }
