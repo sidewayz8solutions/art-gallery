@@ -41,7 +41,7 @@ export function GalleryRoom({ artworks = [] }: GalleryRoomProps) {
     walls: 'https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/Onyx.png',
     floor: 'https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/Wood.png',
     ceiling: 'https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/ceiling.png',
-    statue: 'https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/Aphrodite%20Kallipygian.stl',
+    statue: 'https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/Aphrodite.png',
   };
 
   // Load all textures
