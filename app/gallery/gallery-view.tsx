@@ -26,29 +26,28 @@ interface GalleryViewProps {
 export default function GalleryView({ artworks }: GalleryViewProps) {
   return (
     <main className="relative w-full h-screen overflow-hidden bg-black">
-      {/* 3D canvas fills the background */}
-      <Scene artworks={artworks} />
+      {/* 1. The 3D Layer */}
+      <div className="absolute inset-0 z-0">
+        <Scene artworks={artworks} />
+      </div>
 
-      {/* HTML UI layers on top */}
+      {/* 2. The UI Layer — sits on top because it is later in the DOM order */}
+      <Overlay />
+
+      {/* 3. Navigation */}
       <div className="pointer-events-none fixed inset-0 z-10">
         <div className="pointer-events-auto">
           <Navbar />
         </div>
-
-        <Overlay />
         <Cart />
-
-        {/* Click-to-enter prompt */}
-        <div className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2">
-          <p className="rounded-full bg-black/60 px-6 py-2 text-xs text-white/50 backdrop-blur-sm">
-            Click to look around &middot; WASD to move
-          </p>
-        </div>
       </div>
 
-      {/* Overlay title */}
-      <div className="absolute top-20 left-6 z-10 pointer-events-none">
-        <h1 className="text-2xl font-bold text-white/80">Virtual Gallery</h1>
+      {/* 4. Instructions */}
+      <div className="absolute top-6 left-6 z-10 text-white pointer-events-none mix-blend-difference">
+        <h1 className="text-2xl font-bold tracking-tight">VIRTUAL GALLERY</h1>
+        <p className="text-xs uppercase tracking-widest opacity-70 mt-1">
+          Drag to look &bull; Click art to view details
+        </p>
       </div>
     </main>
   );
