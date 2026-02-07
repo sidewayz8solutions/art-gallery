@@ -8,9 +8,9 @@ import * as THREE from "three";
 const SPEED = 3;
 const PLAYER_HEIGHT = 1.6;
 
-/* Bounds matching the new 25×25 room (walls at ±10, with margin) */
-const ROOM_HALF_W = 9.0;
-const ROOM_HALF_D = 9.0;
+/* Bounds matching the 24×24 room (walls at ±12, with margin) */
+const ROOM_HALF_W = 11.0;
+const ROOM_HALF_D = 11.0;
 
 export default function Player() {
   const { camera } = useThree();

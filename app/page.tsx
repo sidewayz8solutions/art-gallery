@@ -1,50 +1,79 @@
-import Link from "next/link";
+import Link from 'next/link';
+import LandingScene from '@/components/canvas/LandingScene';
+import { supabase } from '@/lib/supabase';
 
-export default function Home() {
+// Helper to fetch one featured image
+async function getFeaturedArt() {
+  const { data } = await supabase
+    .from('artworks')
+    .select('*')
+    .limit(1)
+    .single(); // Just get one
+  return data;
+}
+
+export default async function Home() {
+  const heroArt = await getFeaturedArt();
+
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-black">
-      {/* Background gradient */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black via-zinc-950 to-black" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-900/10 via-transparent to-transparent" />
-
-      {/* Content */}
-      <div className="relative z-10 flex flex-col items-center gap-8 px-6 text-center">
-        {/* Logo mark */}
-        <div className="flex items-center gap-1 text-sm uppercase tracking-[0.3em] text-white/40">
-          <span className="inline-block h-px w-8 bg-white/20" />
-          Virtual Art Experience
-          <span className="inline-block h-px w-8 bg-white/20" />
-        </div>
-
-        {/* Heading */}
-        <h1 className="max-w-2xl text-5xl font-bold leading-tight tracking-tight text-white sm:text-7xl">
-          Gallery<span className="text-amber-400">.</span>
-        </h1>
-
-        <p className="max-w-md text-lg leading-relaxed text-white/60">
-          Step inside a curated 3D space featuring original works from three
-          emerging artists. Walk the room. Click a piece. Make it yours.
-        </p>
-
-        {/* CTAs */}
-        <div className="flex flex-col gap-4 sm:flex-row">
-          <Link
-            href="/gallery"
-            className="rounded-full bg-amber-400 px-8 py-3 text-sm font-semibold text-black transition hover:bg-amber-300"
-          >
-            Enter Gallery
-          </Link>
-          <Link
-            href="/shop"
-            className="rounded-full border border-white/15 px-8 py-3 text-sm font-medium text-white transition hover:border-white/30 hover:bg-white/5"
-          >
-            Browse Shop
-          </Link>
-        </div>
+    <main className="relative w-full h-screen overflow-hidden bg-black text-white">
+      
+      {/* --- LAYER 1: The 3D Background --- */}
+      <div className="absolute inset-0 z-0">
+        {heroArt ? (
+          <LandingScene artwork={heroArt} />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-900">
+             Loading Experience...
+          </div>
+        )}
       </div>
 
-      {/* Bottom fade */}
-      <div className="pointer-events-none absolute bottom-0 h-32 w-full bg-gradient-to-t from-black to-transparent" />
-    </div>
+      {/* --- LAYER 2: The "Unita" Style Overlay --- */}
+      <div className="absolute inset-0 z-10 flex flex-col justify-center px-12 md:px-24 pointer-events-none">
+        
+        {/* Giant Typography behind/blended with 3D
+            For accessibility, we keep it on top but use mix-blend-mode for style 
+        */}
+        <div className="max-w-4xl space-y-6">
+          <p className="text-sm md:text-base font-mono tracking-[0.3em] text-gray-400 uppercase">
+            The Digital Collection
+          </p>
+          
+          <h1 className="text-6xl md:text-8xl font-serif font-medium leading-tight mix-blend-overlay opacity-90">
+            Art Beyond <br />
+            <span className="italic text-white opacity-100 mix-blend-normal">Boundaries</span>
+          </h1>
+
+          <p className="max-w-lg text-lg text-gray-400 font-light leading-relaxed">
+            Experience the works of our three resident artists in a fully immersive 
+            virtual environment. Walk the gallery, inspect the details, and collect unique pieces.
+          </p>
+
+          <div className="pt-8 pointer-events-auto">
+            <Link 
+              href="/gallery"
+              className="group relative inline-flex items-center gap-3 px-8 py-4 bg-white text-black rounded-none overflow-hidden transition-all hover:pr-12"
+            >
+              <span className="relative z-10 font-bold tracking-widest uppercase text-sm">
+                Enter Exhibition
+              </span>
+              {/* Arrow Animation */}
+              <span className="absolute right-8 opacity-0 transition-all duration-300 group-hover:right-4 group-hover:opacity-100">
+                →
+              </span>
+            </Link>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Footer / Brand Element */}
+      <div className="absolute bottom-8 right-8 z-10 text-right opacity-50">
+         <p className="text-xs font-mono">EST. 2024</p>
+         <p className="text-xs font-mono">VSCODE x AUGMENT</p>
+      </div>
+
+    </main>
   );
 }
