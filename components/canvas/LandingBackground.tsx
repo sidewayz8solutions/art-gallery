@@ -14,30 +14,28 @@ function ParallaxImage({ url }: { url: string }) {
   useFrame((state) => {
     if (!meshRef.current) return;
 
-    // PARALLAX LOGIC
-    // Get mouse position (0 in center, -1 left, 1 right)
+  // PARALLAX LOGIC
     const { x, y } = state.pointer;
 
-    // Smoothly interpolate current rotation to target rotation
-    // This makes the image tilt towards the mouse
+  // Smooth tilt
     meshRef.current.rotation.x = THREE.MathUtils.lerp(meshRef.current.rotation.x, -y * 0.1, 0.1);
     meshRef.current.rotation.y = THREE.MathUtils.lerp(meshRef.current.rotation.y, x * 0.1, 0.1);
 
-    // Slight position shift for depth
-    meshRef.current.position.x = THREE.MathUtils.lerp(meshRef.current.position.x, x * 0.5, 0.1);
-    meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, y * 0.5, 0.1);
+  // Smooth movement
+  meshRef.current.position.x = THREE.MathUtils.lerp(meshRef.current.position.x, x * 0.2, 0.1);
+  meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, y * 0.2, 0.1);
   });
 
   return (
     <group ref={meshRef}>
       <Float speed={2} rotationIntensity={0.1} floatIntensity={0.2}>
         {/* The Image Plane */}
-        {/* Scale 15 ensures it covers the screen even when tilted */}
+        {/* Reduced scale to show full borders */}
         <Image
           url={url}
-          scale={[16, 9]} // 16:9 Aspect Ratio scale
+          scale={[11, 6.2]}
           transparent
-          opacity={0.8} // Slightly see-through to blend with black bg
+          opacity={0.9}
           toneMapped={false}
         />
       </Float>
@@ -47,8 +45,8 @@ function ParallaxImage({ url }: { url: string }) {
 
 export default function LandingBackground() {
   return (
-    <div className="absolute inset-0 z-0">
-      <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
+    <div className="absolute inset-0 z-0 bg-black">
+      <Canvas camera={{ position: [0, 0, 7], fov: 75 }}>
         <color attach="background" args={['#000']} />
 
         {/* Ambient light for general visibility */}

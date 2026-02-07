@@ -51,9 +51,9 @@ export function ArtFrame({ artwork, position, rotation = [0, 0, 0] }: ArtFramePr
       >
         <boxGeometry args={[FRAME_WIDTH + BORDER, FRAME_HEIGHT + BORDER, DEPTH]} />
         <meshStandardMaterial 
-          color={hovered ? '#ffaa00' : '#4a3c31'} // Gold on hover, Dark Wood default
-          roughness={0.3}
-          metalness={0.4}
+          color={hovered ? '#ffe28a' : '#d4af37'} // Gold frame with warm highlight
+          roughness={0.25}
+          metalness={0.9}
         />
       </mesh>
 
