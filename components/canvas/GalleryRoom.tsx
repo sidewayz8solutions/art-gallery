@@ -12,47 +12,55 @@ export function GalleryRoom({ artworks = [] }: GalleryRoomProps) {
   const FLOOR_WIDTH = 25;
   const FLOOR_LENGTH = 25;
 
-  // Distribute artworks across 3 walls in a round-robin pattern:
-  // i % 3 === 0 → Back Wall
-  // i % 3 === 1 → Left Wall
-  // i % 3 === 2 → Right Wall
+  // Curated layout: Centerpiece + Left Wing + Right Wing
+  // 1 painting centered on back wall, 2 on each side wall
   const renderArtworks = () => {
-    return artworks.map((art, i) => {
-      const positionIndex = Math.floor(i / 3); // 0,0,0, 1,1,1, 2,2,2...
-      const spread = 4; // Space between frames
+    if (artworks.length === 0) return null;
 
-      if (i % 3 === 0) {
-        // Back Wall
-        return (
+    return (
+      <>
+        {/* 1. CENTERPIECE (Back Wall) - The first item in your DB */}
+        {artworks[0] && (
           <ArtFrame
-            key={art.id}
-            artwork={art}
-            position={[positionIndex * spread - 4, 2.5, -9.8]}
+            artwork={artworks[0]}
+            position={[0, 2.5, -9.8]} // Perfectly centered
             rotation={[0, 0, 0]}
           />
-        );
-      } else if (i % 3 === 1) {
-        // Left Wall
-        return (
+        )}
+
+        {/* 2. LEFT WALL (Next 2 items) */}
+        {artworks[1] && (
           <ArtFrame
-            key={art.id}
-            artwork={art}
-            position={[-9.8, 2.5, positionIndex * spread - 4]}
+            artwork={artworks[1]}
+            position={[-9.8, 2.5, -3]} // Closer to back
             rotation={[0, Math.PI / 2, 0]}
           />
-        );
-      } else {
-        // Right Wall
-        return (
+        )}
+        {artworks[2] && (
           <ArtFrame
-            key={art.id}
-            artwork={art}
-            position={[9.8, 2.5, positionIndex * spread - 4]}
+            artwork={artworks[2]}
+            position={[-9.8, 2.5, 3]} // Closer to front
+            rotation={[0, Math.PI / 2, 0]}
+          />
+        )}
+
+        {/* 3. RIGHT WALL (Last 2 items) */}
+        {artworks[3] && (
+          <ArtFrame
+            artwork={artworks[3]}
+            position={[9.8, 2.5, -3]}
             rotation={[0, -Math.PI / 2, 0]}
           />
-        );
-      }
-    });
+        )}
+        {artworks[4] && (
+          <ArtFrame
+            artwork={artworks[4]}
+            position={[9.8, 2.5, 3]}
+            rotation={[0, -Math.PI / 2, 0]}
+          />
+        )}
+      </>
+    );
   };
 
   return (
