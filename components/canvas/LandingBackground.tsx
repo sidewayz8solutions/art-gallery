@@ -12,26 +12,20 @@ function ParallaxImage({ url }: { url: string }) {
     if (!meshRef.current) return;
     const { x, y } = state.pointer;
 
-    // Gentle parallax tilt and movement
-    meshRef.current.rotation.x = THREE.MathUtils.lerp(meshRef.current.rotation.x, -y * 0.05, 0.1);
-    meshRef.current.rotation.y = THREE.MathUtils.lerp(meshRef.current.rotation.y, x * 0.05, 0.1);
-    meshRef.current.position.x = THREE.MathUtils.lerp(meshRef.current.position.x, x * 0.05, 0.1);
-    meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, y * 0.05, 0.1);
+    // Gentle movement following mouse
+    meshRef.current.rotation.y = THREE.MathUtils.lerp(meshRef.current.rotation.y, x * 0.1, 0.1);
+    meshRef.current.rotation.x = THREE.MathUtils.lerp(meshRef.current.rotation.x, -y * 0.1, 0.1);
   });
 
   return (
     <group ref={meshRef}>
-      {/* Slower, gentler float */}
-      <Float speed={1} rotationIntensity={0.02} floatIntensity={0.05}>
-        {/* --- FIX IS HERE --- 
-           Drastically reduced scale from [16, 9] to [8, 4.5].
-           This makes the image much smaller, allowing the text to be seen.
-        */}
+      <Float speed={2} rotationIntensity={0.1} floatIntensity={0.2}>
+        {/* Adjusted scale to fit the split-screen view nicely */}
         <Image 
           url={url} 
-          scale={[8, 4.5]} 
+          scale={[6, 3.5]} // Smaller, sharper scale
           transparent
-          opacity={0.8} // Slightly more transparent so text pops
+          opacity={1}
           toneMapped={false}
         />
       </Float>
@@ -40,23 +34,22 @@ function ParallaxImage({ url }: { url: string }) {
 }
 
 export default function LandingBackground() {
-  // Keep your existing URL
+  // Your Studio Nouveau Image URL
   const BG_IMAGE_URL = "https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/Studio%20Nouveau.jpeg"; 
 
   return (
-    <div className="absolute inset-0 z-0 bg-black">
-      {/* Moved camera back slightly to z=10 for better perspective */}
-      <Canvas camera={{ position: [0, 0, 10], fov: 60 }}>
+    <div className="w-full h-full relative bg-black">
+      <Canvas camera={{ position: [0, 0, 6], fov: 50 }}>
         <color attach="background" args={['#000']} />
-        <ambientLight intensity={0.5} />
         
-        {/* Subtle particles */}
+        <ambientLight intensity={0.8} />
+        
         <Sparkles 
-          count={30} 
-          scale={10} 
-          size={1.5} 
-          speed={0.3} 
-          opacity={0.3} 
+          count={40} 
+          scale={5} 
+          size={2} 
+          speed={0.4} 
+          opacity={0.5} 
           color="#ffffff" 
         />
 
