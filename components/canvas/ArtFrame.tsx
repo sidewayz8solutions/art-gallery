@@ -14,7 +14,6 @@ interface ArtFrameProps {
 }
 
 export function ArtFrame({ artwork, position, rotation = [0, 0, 0] }: ArtFrameProps) {
-  // 1. Load the texture
   const texture = useTexture(artwork.image_url, (txt) => {
     txt.colorSpace = THREE.SRGBColorSpace;
   });
@@ -22,12 +21,18 @@ export function ArtFrame({ artwork, position, rotation = [0, 0, 0] }: ArtFramePr
   const setActiveArtwork = useGalleryStore((state) => state.setActiveArtwork);
   const [hovered, setHover] = useState(false);
 
-  // 2. Dynamic Size Calculation
-  // We use a fixed height of 3.5, and let width adjust based on the image ratio
-  const aspectRatio = texture.image.width / texture.image.height;
-  const FRAME_HEIGHT = 3.5;
+  // --- ASPECT RATIO LOGIC ---
+  const imgWidth = texture.image.width;
+  const imgHeight = texture.image.height;
+  const aspectRatio = imgWidth / imgHeight;
+
+  // Fixed height for consistency, width adjusts to image ratio
+  const FRAME_HEIGHT = 4; 
   const FRAME_WIDTH = FRAME_HEIGHT * aspectRatio;
-  const BORDER = 0.2;
+  
+  // Frame Thickness
+  const BORDER = 0.3; 
+  const DEPTH = 0.3;
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
@@ -36,34 +41,37 @@ export function ArtFrame({ artwork, position, rotation = [0, 0, 0] }: ArtFramePr
 
   return (
     <group position={position} rotation={rotation}>
-      {/* Frame Box */}
+      
+      {/* --- THE PHYSICAL FRAME --- */}
       <mesh
         onClick={handleClick}
         onPointerOver={() => setHover(true)}
         onPointerOut={() => setHover(false)}
+        position={[0, 0, 0]}
       >
-        <boxGeometry args={[FRAME_WIDTH + BORDER, FRAME_HEIGHT + BORDER, 0.15]} />
+        <boxGeometry args={[FRAME_WIDTH + BORDER, FRAME_HEIGHT + BORDER, DEPTH]} />
         <meshStandardMaterial 
-          color={hovered ? '#d4a373' : '#111'} 
-          roughness={0.4}
+          color={hovered ? '#ffaa00' : '#4a3c31'} // Gold on hover, Dark Wood default
+          roughness={0.3}
+          metalness={0.4}
         />
       </mesh>
 
-      {/* The Painting Canvas */}
-      <mesh position={[0, 0, 0.08]}>
+      {/* --- THE PAINTING --- */}
+      <mesh position={[0, 0, DEPTH / 2 + 0.01]}>
         <planeGeometry args={[FRAME_WIDTH, FRAME_HEIGHT]} />
         <meshBasicMaterial map={texture} toneMapped={false} />
       </mesh>
 
-      {/* Spotlight for this painting */}
+      {/* --- INDIVIDUAL SPOTLIGHT --- */}
       <spotLight
-        position={[0, 4, 3]} 
+        position={[0, 4, 4]} 
         target-position={[0, 0, 0]} 
-        intensity={8}
-        angle={0.5}
+        intensity={20} // Much brighter highlight
+        angle={0.4}
         penumbra={0.5}
-        distance={10}
         castShadow
+        distance={15}
       />
     </group>
   );
