@@ -25,8 +25,9 @@ function ParallaxImage({ url }: { url: string }) {
 }
 
 export default function LandingBackground() {
+  // Use cover.jpeg (or upload as studio-nouveau.jpeg if you prefer — avoid spaces in filenames)
   const BG_IMAGE_URL =
-    'https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/Studio%20Nouveau.jpeg';
+    'https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/cover.jpeg';
 
   return (
     <div className="w-full h-full relative bg-black">
