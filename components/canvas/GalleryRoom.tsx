@@ -5,10 +5,36 @@ import { useTexture, Text } from '@react-three/drei';
 import { ArtFrame } from './ArtFrame';
 import { Artwork } from '@/types/schema';
 import * as THREE from 'three';
+import { useEffect, useState } from 'react';
 
 // --- STATUE COMPONENT ---
 function Statue({ url }: { url: string }) {
-  const texture = useTexture(url);
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loader = new THREE.TextureLoader();
+
+    loader.load(
+      url,
+      (loadedTexture) => {
+        if (!isMounted) return;
+        loadedTexture.colorSpace = THREE.SRGBColorSpace;
+        setTexture(loadedTexture);
+      },
+      undefined,
+      () => {
+        if (!isMounted) return;
+        setFailed(true);
+      }
+    );
+
+    return () => {
+      isMounted = false;
+    };
+  }, [url]);
+
   // Keep statue aspect ratio
   const getImageSize = (img: unknown): img is { width: number; height: number } =>
     typeof img === 'object' &&
@@ -18,7 +44,7 @@ function Statue({ url }: { url: string }) {
     typeof (img as { width: number }).width === 'number' &&
     typeof (img as { height: number }).height === 'number';
 
-  const ratio = getImageSize(texture.image) ? texture.image.width / texture.image.height : 1;
+  const ratio = texture && getImageSize(texture.image) ? texture.image.width / texture.image.height : 1;
   const height = 12; // 12 units tall
 
   return (
@@ -26,7 +52,16 @@ function Statue({ url }: { url: string }) {
     <mesh position={[0, 6, 20]} rotation={[0, 0, 0]} castShadow>
       <planeGeometry args={[height * ratio, height]} />
       {/* transparent={true} allows the PNG background to be invisible */}
-      <meshStandardMaterial map={texture} transparent={true} alphaTest={0.5} side={THREE.DoubleSide} />
+      {texture ? (
+        <meshStandardMaterial map={texture} transparent={true} alphaTest={0.5} side={THREE.DoubleSide} />
+      ) : (
+        <meshStandardMaterial
+          color={failed ? '#e5e7eb' : '#111827'}
+          opacity={failed ? 1 : 0.3}
+          transparent={true}
+          side={THREE.DoubleSide}
+        />
+      )}
     </mesh>
   );
 }
