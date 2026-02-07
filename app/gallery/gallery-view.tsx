@@ -42,12 +42,9 @@ export default function GalleryView({ artworks }: GalleryViewProps) {
         <Cart />
       </div>
 
-      {/* 4. Instructions */}
-      <div className="absolute top-6 left-6 z-10 text-white pointer-events-none mix-blend-difference">
-        <h1 className="text-2xl font-bold tracking-tight">VIRTUAL GALLERY</h1>
-        <p className="text-xs uppercase tracking-widest opacity-70 mt-1">
-          Drag to look &bull; Click art to view details
-        </p>
+      {/* 4. Instructions — bottom-left to avoid overlapping Navbar */}
+      <div className="absolute bottom-6 left-6 z-10 text-white/60 pointer-events-none text-xs uppercase tracking-widest">
+        Drag to look &bull; Click art to view details
       </div>
     </main>
   );

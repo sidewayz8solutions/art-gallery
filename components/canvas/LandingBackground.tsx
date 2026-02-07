@@ -13,31 +13,17 @@ function ParallaxImage({ url }: { url: string }) {
 
   useFrame((state) => {
     if (!meshRef.current) return;
-
-  // PARALLAX LOGIC
     const { x, y } = state.pointer;
-
-  // Smooth tilt
-    meshRef.current.rotation.x = THREE.MathUtils.lerp(meshRef.current.rotation.x, -y * 0.1, 0.1);
-    meshRef.current.rotation.y = THREE.MathUtils.lerp(meshRef.current.rotation.y, x * 0.1, 0.1);
-
-  // Smooth movement
-  meshRef.current.position.x = THREE.MathUtils.lerp(meshRef.current.position.x, x * 0.2, 0.1);
-  meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, y * 0.2, 0.1);
+    meshRef.current.rotation.x = THREE.MathUtils.lerp(meshRef.current.rotation.x, -y * 0.05, 0.1);
+    meshRef.current.rotation.y = THREE.MathUtils.lerp(meshRef.current.rotation.y, x * 0.05, 0.1);
+    meshRef.current.position.x = THREE.MathUtils.lerp(meshRef.current.position.x, x * 0.1, 0.1);
+    meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, y * 0.1, 0.1);
   });
 
   return (
     <group ref={meshRef}>
-      <Float speed={2} rotationIntensity={0.1} floatIntensity={0.2}>
-        {/* The Image Plane */}
-        {/* Reduced scale to show full borders */}
-        <Image
-          url={url}
-          scale={[11, 6.2]}
-          transparent
-          opacity={0.9}
-          toneMapped={false}
-        />
+      <Float speed={1.5} rotationIntensity={0.05} floatIntensity={0.1}>
+        <Image url={url} scale={[9, 5]} transparent opacity={0.95} toneMapped={false} />
       </Float>
     </group>
   );
@@ -46,22 +32,10 @@ function ParallaxImage({ url }: { url: string }) {
 export default function LandingBackground() {
   return (
     <div className="absolute inset-0 z-0 bg-black">
-      <Canvas camera={{ position: [0, 0, 7], fov: 75 }}>
+      <Canvas camera={{ position: [0, 0, 10], fov: 60 }}>
         <color attach="background" args={['#000']} />
-
-        {/* Ambient light for general visibility */}
         <ambientLight intensity={0.5} />
-
-        {/* Particles for Depth */}
-        <Sparkles
-          count={50}
-          scale={10}
-          size={2}
-          speed={0.4}
-          opacity={0.5}
-          color="#ffffff"
-        />
-
+        <Sparkles count={30} scale={10} size={1.5} speed={0.2} opacity={0.3} color="#ffffff" />
         <Suspense fallback={null}>
           <ParallaxImage url={BG_IMAGE_URL} />
         </Suspense>

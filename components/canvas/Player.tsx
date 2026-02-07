@@ -8,9 +8,9 @@ import * as THREE from "three";
 const SPEED = 3;
 const PLAYER_HEIGHT = 1.6;
 
-/* Bounds matching the long marble hall (20 wide × 100 long) */
-const ROOM_HALF_W = 9.0;
-const ROOM_HALF_D = 48.0;
+/* Bounds matching the Grand Hall (40 wide × 160 deep) */
+const ROOM_HALF_W = 19.0;
+const ROOM_HALF_D = 79.0;
 
 export default function Player() {
   const { camera } = useThree();

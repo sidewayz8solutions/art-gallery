@@ -8,22 +8,19 @@ export default function Navbar() {
   const setCartOpen = useGalleryStore((s) => s.setCartOpen);
 
   return (
-    <nav className="fixed top-0 left-0 z-50 flex w-full items-center justify-between px-6 py-4 backdrop-blur-md bg-black/40 border-b border-white/10">
+    <nav className="fixed top-0 left-0 z-50 flex w-full items-center justify-between px-6 py-4 backdrop-blur-md bg-black/50 text-white">
       {/* Logo / Home */}
-      <Link
-        href="/"
-        className="text-lg font-bold tracking-widest text-white uppercase"
-      >
-        Gallery<span className="text-amber-400">.</span>
+      <Link href="/" className="text-xl font-bold tracking-widest uppercase">
+        Studio Nouveau
       </Link>
 
       {/* Navigation Links */}
       <div className="flex items-center gap-6 text-sm text-white/80">
-        <Link href="/gallery" className="transition hover:text-white">
+        <Link href="/gallery" className="transition hover:text-gray-300">
           3D Gallery
         </Link>
-        <Link href="/shop" className="transition hover:text-white">
-          Shop
+        <Link href="/shop" className="transition hover:text-gray-300">
+          Collection
         </Link>
 
         {/* Cart Button */}
