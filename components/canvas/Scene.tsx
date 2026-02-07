@@ -16,14 +16,14 @@ export default function Scene({ artworks }: SceneProps) {
     <Canvas
       shadows
       dpr={[1, 2]} 
-      camera={{ position: [0, 1.7, 6], fov: 45 }} 
+      camera={{ position: [0, 1.7, 35], fov: 50 }} 
       className="w-full h-screen bg-[#111]" 
     >
       {/* 1. Realistic Environment Lighting */}
       <Environment preset="city" blur={1} />
       
       {/* 2. Main Ambient Light */}
-      <ambientLight intensity={0.2} />
+      <ambientLight intensity={0.35} />
 
       <Suspense fallback={null}>
         <GalleryRoom artworks={artworks} />

@@ -9,227 +9,161 @@ interface GalleryRoomProps {
   artworks?: Artwork[];
 }
 
+// Long marble hall: narrow width, great length
+const HALL_WIDTH = 20;
+const HALL_LENGTH = 100;
+const WALL_HEIGHT = 14;
+const HALF_WIDTH = HALL_WIDTH / 2;
+const HALF_LENGTH = HALL_LENGTH / 2;
+
+// Painting positions along each wall (12 per side = 24 slots)
+const LEFT_WALL_Z = [-42, -35, -28, -21, -14, -7, 0, 7, 14, 21, 28, 35];
+const RIGHT_WALL_Z = [-42, -35, -28, -21, -14, -7, 0, 7, 14, 21, 28, 35];
+const PAINTING_Y = 4;
+const WALL_OFFSET = 0.6;
+
+// Ornate column positions (between painting bays)
+const COLUMN_Z = [-38.5, -31.5, -24.5, -17.5, -10.5, -3.5, 3.5, 10.5, 17.5, 24.5, 31.5];
+
+function OrnateColumn({ x }: { x: number }) {
+  return (
+    <group>
+      {COLUMN_Z.map((z) => (
+        <group key={`col-${x}-${z}`}>
+          {/* Base */}
+          <mesh position={[x, 0.9, z]} castShadow receiveShadow>
+            <cylinderGeometry args={[1, 1.3, 1, 32]} />
+            <meshStandardMaterial color="#3a3530" roughness={0.3} metalness={0.1} />
+          </mesh>
+          {/* Plinth */}
+          <mesh position={[x, 1.75, z]} castShadow receiveShadow>
+            <cylinderGeometry args={[0.85, 1, 0.5, 32]} />
+            <meshStandardMaterial color="#2d2a26" roughness={0.25} metalness={0.15} />
+          </mesh>
+          {/* Shaft - fluted appearance with rings */}
+          <mesh position={[x, 7, z]} castShadow receiveShadow>
+            <cylinderGeometry args={[0.6, 0.75, 10, 48]} />
+            <meshStandardMaterial color="#2a2724" roughness={0.2} metalness={0.2} />
+          </mesh>
+          {/* Decorative ring lower */}
+          <mesh position={[x, 3.5, z]} castShadow receiveShadow>
+            <torusGeometry args={[0.78, 0.06, 12, 48]} />
+            <meshStandardMaterial color="#4a4035" roughness={0.25} metalness={0.4} />
+          </mesh>
+          {/* Decorative ring upper */}
+          <mesh position={[x, 9.8, z]} castShadow receiveShadow>
+            <torusGeometry args={[0.72, 0.06, 12, 48]} />
+            <meshStandardMaterial color="#4a4035" roughness={0.25} metalness={0.4} />
+          </mesh>
+          {/* Capital */}
+          <mesh position={[x, 12.5, z]} castShadow receiveShadow>
+            <cylinderGeometry args={[1.2, 0.8, 1, 48]} />
+            <meshStandardMaterial color="#35302a" roughness={0.2} metalness={0.25} />
+          </mesh>
+          {/* Capital crown */}
+          <mesh position={[x, 13.4, z]} castShadow receiveShadow>
+            <cylinderGeometry args={[1.35, 1.2, 0.4, 48]} />
+            <meshStandardMaterial color="#2d2a26" roughness={0.25} metalness={0.2} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
 export function GalleryRoom({ artworks = [] }: GalleryRoomProps) {
-  const ROOM_SIZE = 44; // Grand hall scale
-  const WALL_HEIGHT = 18;
-  const HALF_ROOM = ROOM_SIZE / 2;
-  const WALL_Z = -HALF_ROOM;
-  const WALL_X = HALF_ROOM;
+  const slots: Array<{ position: [number, number, number]; rotation: [number, number, number]; isLeft: boolean }> = [];
 
-  const renderArtworks = () => {
-    if (artworks.length === 0) return null;
+  LEFT_WALL_Z.forEach((z) => {
+    slots.push({ position: [-HALF_WIDTH + WALL_OFFSET, PAINTING_Y, z], rotation: [0, Math.PI / 2, 0], isLeft: true });
+  });
+  RIGHT_WALL_Z.forEach((z) => {
+    slots.push({ position: [HALF_WIDTH - WALL_OFFSET, PAINTING_Y, z], rotation: [0, -Math.PI / 2, 0], isLeft: false });
+  });
 
-    const backWallX = [-10, 0, 10];
-    const sideWallZ = [-14, -6, 2, 10];
-    const rowsY = [5, 11];
-
-    const slots: Array<{ position: [number, number, number]; rotation: [number, number, number] }> = [];
-
-    // Back wall: 3 columns x 2 rows = 6
-    rowsY.forEach((y) => {
-      backWallX.forEach((x) => {
-        slots.push({ position: [x, y, WALL_Z + 0.8], rotation: [0, 0, 0] });
-      });
-    });
-
-    // Left wall: 4 columns x 2 rows = 8
-    rowsY.forEach((y) => {
-      sideWallZ.forEach((z) => {
-        slots.push({ position: [-WALL_X + 0.8, y, z], rotation: [0, Math.PI / 2, 0] });
-      });
-    });
-
-    // Right wall: 4 columns x 2 rows = 8
-    rowsY.forEach((y) => {
-      sideWallZ.forEach((z) => {
-        slots.push({ position: [WALL_X - 0.8, y, z], rotation: [0, -Math.PI / 2, 0] });
-      });
-    });
-
-    // Extra hero slot for a 23rd piece (center, high on back wall)
-    slots.push({ position: [0, 14.5, WALL_Z + 0.8], rotation: [0, 0, 0] });
-
-    return (
-      <>
-        {slots.slice(0, artworks.length).map((slot, index) => (
-          <ArtFrame
-            key={artworks[index]?.id ?? `art-${index}`}
-            artwork={artworks[index]}
-            position={slot.position}
-            rotation={slot.rotation}
-          />
-        ))}
-      </>
-    );
-  };
+  const displaySlots = slots.slice(0, artworks.length);
 
   return (
     <group>
-      {/* --- 1. FLOOR (Polished Dark Stone) --- */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.15, -2]} receiveShadow>
-        <planeGeometry args={[ROOM_SIZE, ROOM_SIZE]} />
+      {/* --- 1. FLOOR (Polished Light Marble) --- */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+        <planeGeometry args={[HALL_WIDTH, HALL_LENGTH]} />
         <MeshReflectorMaterial
           blur={[300, 100]}
           resolution={1024}
           mixBlur={1}
-          mixStrength={1.1}
-          roughness={0.35}
+          mixStrength={1.2}
+          roughness={0.25}
           depthScale={1.2}
           minDepthThreshold={0.4}
           maxDepthThreshold={1.4}
-          color="#2a2a2a"
-          metalness={0.35}
+          color="#c9c4bd"
+          metalness={0.2}
           mirror={0.6}
         />
       </mesh>
 
-      {/* --- 2. WALLS (Dark Marble Simulation) --- */}
-      {/* Back Wall */}
-      <mesh position={[0, WALL_HEIGHT / 2, WALL_Z]} receiveShadow>
-        <boxGeometry args={[ROOM_SIZE, WALL_HEIGHT, 0.5]} />
-        <meshPhysicalMaterial 
-          color="#0f0f0f" 
-          roughness={0.2} 
-          clearcoat={1} 
-          clearcoatRoughness={0.1}
-        />
+      {/* --- 2. WALLS (Light Marble) --- */}
+      {/* Left wall */}
+      <mesh position={[-HALF_WIDTH, WALL_HEIGHT / 2, 0]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
+        <boxGeometry args={[HALL_LENGTH, WALL_HEIGHT, 0.5]} />
+        <meshPhysicalMaterial color="#e8e4de" roughness={0.15} clearcoat={1} clearcoatRoughness={0.05} />
       </mesh>
-      
-      {/* Branding on Back Wall */}
-      <Text 
-        position={[0, 16.2, WALL_Z + 0.3]} 
-        fontSize={2} 
+      {/* Right wall */}
+      <mesh position={[HALF_WIDTH, WALL_HEIGHT / 2, 0]} rotation={[0, -Math.PI / 2, 0]} receiveShadow>
+        <boxGeometry args={[HALL_LENGTH, WALL_HEIGHT, 0.5]} />
+        <meshPhysicalMaterial color="#e8e4de" roughness={0.15} clearcoat={1} clearcoatRoughness={0.05} />
+      </mesh>
+      {/* Back wall */}
+      <mesh position={[0, WALL_HEIGHT / 2, -HALF_LENGTH]} receiveShadow>
+        <boxGeometry args={[HALL_WIDTH, WALL_HEIGHT, 0.5]} />
+        <meshPhysicalMaterial color="#e8e4de" roughness={0.15} clearcoat={1} clearcoatRoughness={0.05} />
+      </mesh>
+      {/* Front wall */}
+      <mesh position={[0, WALL_HEIGHT / 2, HALF_LENGTH]} receiveShadow>
+        <boxGeometry args={[HALL_WIDTH, WALL_HEIGHT, 0.5]} />
+        <meshPhysicalMaterial color="#e8e4de" roughness={0.15} clearcoat={1} clearcoatRoughness={0.05} />
+      </mesh>
+
+      {/* --- 3. CEILING --- */}
+      <mesh position={[0, WALL_HEIGHT, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[HALL_WIDTH, HALL_LENGTH]} />
+        <meshStandardMaterial color="#d8d4ce" side={THREE.DoubleSide} />
+      </mesh>
+
+      {/* --- 4. SKYLIGHT STRIP (runs down the hall) --- */}
+      <mesh position={[0, WALL_HEIGHT - 0.1, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[6, HALL_LENGTH - 4]} />
+        <meshBasicMaterial color="#ffffff" toneMapped={false} />
+      </mesh>
+      <rectAreaLight
+        width={6}
+        height={HALL_LENGTH}
         color="white"
-        anchorX="center"
-        anchorY="middle"
-      >
+        intensity={4}
+        position={[0, WALL_HEIGHT - 1, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      />
+
+      {/* --- 5. ORNATE COLUMNS --- */}
+      <OrnateColumn x={-HALF_WIDTH + 2.5} />
+      <OrnateColumn x={HALF_WIDTH - 2.5} />
+
+      {/* --- 6. BRANDING --- */}
+      <Text position={[0, 12, -HALF_LENGTH + 1]} fontSize={1.8} color="#2a2520" anchorX="center" anchorY="middle">
         STUDIO NOUVEAU
       </Text>
 
-      {/* Left Wall */}
-      <mesh position={[-WALL_X, WALL_HEIGHT / 2, 0]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
-        <boxGeometry args={[ROOM_SIZE, WALL_HEIGHT, 0.5]} />
-        <meshPhysicalMaterial color="#0f0f0f" roughness={0.2} clearcoat={1} />
-      </mesh>
-
-      {/* Right Wall */}
-      <mesh position={[WALL_X, WALL_HEIGHT / 2, 0]} rotation={[0, -Math.PI / 2, 0]} receiveShadow>
-        <boxGeometry args={[ROOM_SIZE, WALL_HEIGHT, 0.5]} />
-        <meshPhysicalMaterial color="#0f0f0f" roughness={0.2} clearcoat={1} />
-      </mesh>
-
-      {/* --- 3. ROOF & SKYLIGHT --- */}
-      {/* Ceiling Main */}
-      <mesh position={[0, WALL_HEIGHT, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[ROOM_SIZE, ROOM_SIZE]} />
-        <meshStandardMaterial color="#222" side={THREE.DoubleSide} />
-      </mesh>
-      
-      {/* Skylight Frame */}
-      <mesh position={[0, WALL_HEIGHT - 0.2, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <boxGeometry args={[22, 22, 0.7]} />
-        <meshStandardMaterial color="#000" />
-      </mesh>
-      
-      {/* The Light Source (The Glass) */}
-      <mesh position={[0, WALL_HEIGHT - 0.1, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[20, 20]} />
-        <meshBasicMaterial color="#ffffff" toneMapped={false} />
-      </mesh>
-      
-      {/* Actual Light coming from Skylight */}
-      <rectAreaLight 
-        width={20} 
-        height={20} 
-        color={"white"} 
-        intensity={9} 
-        position={[0, WALL_HEIGHT - 1.8, 0]} 
-        rotation={[-Math.PI / 2, 0, 0]} 
-      />
-
-      {/* --- 4. GRAND HALL COLUMNS --- */}
-      <group>
-        {[-14, -6, 2, 10].map((z) => (
-          <group key={`col-left-${z}`}>
-            {/* Base */}
-            <mesh position={[-WALL_X + 3.5, 0.9, z]} castShadow receiveShadow>
-              <cylinderGeometry args={[1.6, 1.9, 1.2, 48]} />
-              <meshStandardMaterial color="#2b2b2b" roughness={0.35} metalness={0.15} />
-            </mesh>
-            {/* Plinth */}
-            <mesh position={[-WALL_X + 3.5, 1.8, z]} castShadow receiveShadow>
-              <cylinderGeometry args={[1.2, 1.4, 0.8, 48]} />
-              <meshStandardMaterial color="#202020" roughness={0.3} metalness={0.2} />
-            </mesh>
-            {/* Shaft */}
-            <mesh position={[-WALL_X + 3.5, 8, z]} castShadow receiveShadow>
-              <cylinderGeometry args={[0.75, 0.95, 12, 64]} />
-              <meshStandardMaterial color="#1c1c1c" roughness={0.25} metalness={0.15} />
-            </mesh>
-            {/* Fluting rings */}
-            <mesh position={[-WALL_X + 3.5, 5, z]} castShadow receiveShadow>
-              <torusGeometry args={[0.95, 0.05, 16, 64]} />
-              <meshStandardMaterial color="#151515" roughness={0.3} metalness={0.2} />
-            </mesh>
-            <mesh position={[-WALL_X + 3.5, 9.5, z]} castShadow receiveShadow>
-              <torusGeometry args={[0.9, 0.05, 16, 64]} />
-              <meshStandardMaterial color="#151515" roughness={0.3} metalness={0.2} />
-            </mesh>
-            {/* Capital */}
-            <mesh position={[-WALL_X + 3.5, 14.2, z]} castShadow receiveShadow>
-              <cylinderGeometry args={[1.5, 1.1, 1.2, 48]} />
-              <meshStandardMaterial color="#262626" roughness={0.25} metalness={0.2} />
-            </mesh>
-            <mesh position={[-WALL_X + 3.5, 15.1, z]} castShadow receiveShadow>
-              <boxGeometry args={[3.2, 0.6, 3.2]} />
-              <meshStandardMaterial color="#111" roughness={0.3} />
-            </mesh>
-          </group>
-        ))}
-        {[-14, -6, 2, 10].map((z) => (
-          <group key={`col-right-${z}`}>
-            {/* Base */}
-            <mesh position={[WALL_X - 3.5, 0.9, z]} castShadow receiveShadow>
-              <cylinderGeometry args={[1.6, 1.9, 1.2, 48]} />
-              <meshStandardMaterial color="#2b2b2b" roughness={0.35} metalness={0.15} />
-            </mesh>
-            {/* Plinth */}
-            <mesh position={[WALL_X - 3.5, 1.8, z]} castShadow receiveShadow>
-              <cylinderGeometry args={[1.2, 1.4, 0.8, 48]} />
-              <meshStandardMaterial color="#202020" roughness={0.3} metalness={0.2} />
-            </mesh>
-            {/* Shaft */}
-            <mesh position={[WALL_X - 3.5, 8, z]} castShadow receiveShadow>
-              <cylinderGeometry args={[0.75, 0.95, 12, 64]} />
-              <meshStandardMaterial color="#1c1c1c" roughness={0.25} metalness={0.15} />
-            </mesh>
-            {/* Fluting rings */}
-            <mesh position={[WALL_X - 3.5, 5, z]} castShadow receiveShadow>
-              <torusGeometry args={[0.95, 0.05, 16, 64]} />
-              <meshStandardMaterial color="#151515" roughness={0.3} metalness={0.2} />
-            </mesh>
-            <mesh position={[WALL_X - 3.5, 9.5, z]} castShadow receiveShadow>
-              <torusGeometry args={[0.9, 0.05, 16, 64]} />
-              <meshStandardMaterial color="#151515" roughness={0.3} metalness={0.2} />
-            </mesh>
-            {/* Capital */}
-            <mesh position={[WALL_X - 3.5, 14.2, z]} castShadow receiveShadow>
-              <cylinderGeometry args={[1.5, 1.1, 1.2, 48]} />
-              <meshStandardMaterial color="#262626" roughness={0.25} metalness={0.2} />
-            </mesh>
-            <mesh position={[WALL_X - 3.5, 15.1, z]} castShadow receiveShadow>
-              <boxGeometry args={[3.2, 0.6, 3.2]} />
-              <meshStandardMaterial color="#111" roughness={0.3} />
-            </mesh>
-          </group>
-        ))}
-      </group>
-
-      {/* --- 5. GRAND HALL LIGHTING ACCENTS --- */}
-      <spotLight position={[-12, 14, 10]} angle={0.6} intensity={3} penumbra={0.5} color="#f5e6c8" />
-      <spotLight position={[12, 14, 10]} angle={0.6} intensity={3} penumbra={0.5} color="#f5e6c8" />
-
-      {renderArtworks()}
+      {/* --- 7. PAINTINGS (each with own frame & lights) --- */}
+      {displaySlots.map((slot, index) => (
+        <ArtFrame
+          key={artworks[index]?.id ?? `art-${index}`}
+          artwork={artworks[index]}
+          position={slot.position}
+          rotation={slot.rotation}
+          isLeftWall={slot.isLeft}
+        />
+      ))}
     </group>
   );
 }
