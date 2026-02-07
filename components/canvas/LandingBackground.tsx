@@ -31,7 +31,7 @@ export default function LandingBackground() {
 
   return (
     <div className="w-full h-full relative bg-black">
-      <Canvas camera={{ position: [0, 0, 10], fov: 50 }}>
+      <Canvas camera={{ position: [0, 0, 8], fov: 50 }}>
         <color attach="background" args={['#000']} />
         <ambientLight intensity={0.8} />
         <Sparkles count={40} scale={5} size={2} speed={0.4} opacity={0.5} color="#ffffff" />
