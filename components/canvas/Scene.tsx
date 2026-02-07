@@ -41,7 +41,20 @@ export default function Scene({ artworks }: SceneProps) {
       {/* 2. Main Ambient Light */}
       <ambientLight intensity={0.35} />
 
-      <Suspense fallback={null}>
+      <Suspense fallback={
+        <group>
+          {/* Show basic room structure while loading */}
+          <ambientLight intensity={0.5} />
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
+            <planeGeometry args={[40, 150]} />
+            <meshStandardMaterial color="#2a1f0f" />
+          </mesh>
+          <mesh position={[0, 10, -75]}>
+            <boxGeometry args={[40, 20, 1]} />
+            <meshStandardMaterial color="#1a1a1a" />
+          </mesh>
+        </group>
+      }>
         <GalleryRoom artworks={artworks} />
         <Player />
       </Suspense>
