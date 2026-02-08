@@ -14,13 +14,13 @@ interface GalleryRoomProps {
 // TEXTURE SIZE OPTIMIZATION: Ensure textures are reasonable sizes to prevent GPU overload
 // Recommended sizes:
 //   - Onyx.png (walls): Max 2048x2048 (2K)
-//   - Wood.png (floor): Max 2048x2048 (2K)  
+//   - Wood.png (floor): Max 2048x2048 (2K)
 //   - ceiling.png: Max 1024x1024 (1K)
 // If textures are 4K or 8K, resize them before uploading to Supabase
 function RoomTextures({ children }: { children: (textures: { walls: THREE.Texture; floor: THREE.Texture; ceiling: THREE.Texture }) => React.ReactNode }) {
   const TEXTURE_URLS = {
-    walls: 'https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/Onyx.png',
-    floor: 'https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/Wood.png',
+    walls: 'https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/Marble006_4K-PNG_Color.png',
+    floor: 'https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/Onyx004_4K-PNG_Color.png',
     ceiling: 'https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/ceiling.png',
   };
 
@@ -93,10 +93,10 @@ export function GalleryRoom({ artworks = [] }: GalleryRoomProps) {
           {/* --- 2. ONYX WALLS --- */}
           <mesh position={[0, WALL_HEIGHT / 2, -ROOM_DEPTH / 2]}> {/* Back */}
             <boxGeometry args={[WIDTH, WALL_HEIGHT, 1]} />
-            <meshStandardMaterial 
+            <meshStandardMaterial
               map={textures.walls}
-              roughness={0.1} 
-              metalness={0.2} 
+              roughness={0.1}
+              metalness={0.2}
             />
           </mesh>
 
@@ -106,28 +106,28 @@ export function GalleryRoom({ artworks = [] }: GalleryRoomProps) {
 
           <mesh position={[-WIDTH / 2, WALL_HEIGHT / 2, 0]} rotation={[0, Math.PI / 2, 0]}> {/* Left */}
             <boxGeometry args={[ROOM_DEPTH, WALL_HEIGHT, 1]} />
-            <meshStandardMaterial 
+            <meshStandardMaterial
               map={textures.walls}
-              roughness={0.1} 
-              metalness={0.2} 
+              roughness={0.1}
+              metalness={0.2}
             />
           </mesh>
 
           <mesh position={[WIDTH / 2, WALL_HEIGHT / 2, 0]} rotation={[0, -Math.PI / 2, 0]}> {/* Right */}
             <boxGeometry args={[ROOM_DEPTH, WALL_HEIGHT, 1]} />
-            <meshStandardMaterial 
+            <meshStandardMaterial
               map={textures.walls}
-              roughness={0.1} 
-              metalness={0.2} 
+              roughness={0.1}
+              metalness={0.2}
             />
           </mesh>
 
           {/* --- 3. CEILING --- */}
           <mesh position={[0, WALL_HEIGHT, 0]} rotation={[Math.PI / 2, 0, 0]}>
             <planeGeometry args={[WIDTH, ROOM_DEPTH]} />
-            <meshStandardMaterial 
+            <meshStandardMaterial
               map={textures.ceiling}
-              side={THREE.DoubleSide} 
+              side={THREE.DoubleSide}
             />
           </mesh>
 
