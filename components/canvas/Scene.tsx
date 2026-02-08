@@ -32,10 +32,13 @@ export default function Scene({ artworks }: SceneProps) {
         
         gl.domElement.addEventListener('webglcontextrestored', () => {
           console.log('WebGL context restored');
+          // Force a re-render when context is restored
+          window.location.reload();
         });
       }}
     >
       {/* 1. Realistic Environment Lighting */}
+      {/* Environment uses HDR textures which are handled separately from regular textures */}
       <Environment preset="city" blur={1} />
       
       {/* 2. Main Ambient Light */}

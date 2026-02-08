@@ -14,6 +14,8 @@ interface ArtFrameProps {
 }
 
 export function ArtFrame({ artwork, position, rotation = [0, 0, 0] }: ArtFrameProps) {
+  // useTexture automatically handles texture reuse for the same URL
+  // This helps prevent exceeding WebGL's 16 texture unit limit
   const texture = useTexture(artwork.image_url);
   texture.colorSpace = THREE.SRGBColorSpace;
   
