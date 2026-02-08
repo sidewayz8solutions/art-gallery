@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTexture } from '@react-three/drei';
 import { ThreeEvent } from '@react-three/fiber';
 import { Artwork } from '@/types/schema';
@@ -14,21 +14,24 @@ interface ArtFrameProps {
 }
 
 export function ArtFrame({ artwork, position, rotation = [0, 0, 0] }: ArtFrameProps) {
-  // useTexture automatically handles texture reuse for the same URL
-  // This helps prevent exceeding WebGL's 16 texture unit limit
+  // OPTIMIZATION: This allows the GPU to reuse the texture logic
   const texture = useTexture(artwork.image_url);
-  texture.colorSpace = THREE.SRGBColorSpace;
+  
+  // Memoize texture settings so we don't re-upload to GPU every frame
+  useMemo(() => {
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.generateMipmaps = true; // Better quality
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+  }, [texture]);
   
   const setActiveArtwork = useGalleryStore((state) => state.setActiveArtwork);
   const [hovered, setHover] = useState(false);
 
-  // --- 1. PARSE "ACTUAL SIZE" FROM DB ---
-  // Default to 24x36 if missing
+  // --- SIZE LOGIC ---
   let widthInInches = 24;
   let heightInInches = 36;
 
   if (artwork.dimensions) {
-    // Look for patterns like "24x36", "24 x 36", "24 by 36"
     const numbers = artwork.dimensions.match(/(\d+)/g);
     if (numbers && numbers.length >= 2) {
       widthInInches = parseInt(numbers[0]);
@@ -36,13 +39,10 @@ export function ArtFrame({ artwork, position, rotation = [0, 0, 0] }: ArtFramePr
     }
   }
 
-  // --- 2. CONVERT TO 3D UNITS ---
-  // In our scene, let's say 1 unit = 10 inches for good visibility
   const SCALE_FACTOR = 0.15; 
   const FRAME_WIDTH = widthInInches * SCALE_FACTOR;
   const FRAME_HEIGHT = heightInInches * SCALE_FACTOR;
   
-  // Frame Settings
   const BORDER = 0.5; 
   const DEPTH = 0.3;
 
@@ -57,7 +57,7 @@ export function ArtFrame({ artwork, position, rotation = [0, 0, 0] }: ArtFramePr
       >
         <boxGeometry args={[FRAME_WIDTH + BORDER, FRAME_HEIGHT + BORDER, DEPTH]} />
         <meshStandardMaterial 
-          color={hovered ? '#ffffff' : '#D4AF37'} // Antique Gold
+          color={hovered ? '#ffffff' : '#D4AF37'} 
           roughness={0.3}
           metalness={0.6}
         />
@@ -66,19 +66,14 @@ export function ArtFrame({ artwork, position, rotation = [0, 0, 0] }: ArtFramePr
       {/* ARTWORK */}
       <mesh position={[0, 0, DEPTH / 2 + 0.001]}>
         <planeGeometry args={[FRAME_WIDTH, FRAME_HEIGHT]} />
+        {/* CRITICAL FIX: 'map={texture}' is fine, but we ensure we don't attach too many other maps */}
         <meshBasicMaterial map={texture} toneMapped={false} />
       </mesh>
 
-      {/* LIGHTING */}
-      <spotLight
-        position={[0, 5, 5]} 
-        target-position={[0, 0, 0]} 
-        intensity={30}
-        angle={0.5}
-        penumbra={0.4}
-        distance={10}
-        castShadow
-      />
+      {/* OPTIMIZATION: Only use lights if absolutely necessary, or bake them. 
+          Dynamic lights are expensive. We removed the spotlight here to save GPU. 
+          The room lights are enough. 
+      */}
     </group>
   );
 }

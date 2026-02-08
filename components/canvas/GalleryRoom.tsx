@@ -11,6 +11,12 @@ interface GalleryRoomProps {
 }
 
 // Component to load room textures
+// TEXTURE SIZE OPTIMIZATION: Ensure textures are reasonable sizes to prevent GPU overload
+// Recommended sizes:
+//   - Onyx.png (walls): Max 2048x2048 (2K)
+//   - Wood.png (floor): Max 2048x2048 (2K)  
+//   - ceiling.png: Max 1024x1024 (1K)
+// If textures are 4K or 8K, resize them before uploading to Supabase
 function RoomTextures({ children }: { children: (textures: { walls: THREE.Texture; floor: THREE.Texture; ceiling: THREE.Texture }) => React.ReactNode }) {
   const TEXTURE_URLS = {
     walls: 'https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/Onyx.png',
@@ -20,18 +26,27 @@ function RoomTextures({ children }: { children: (textures: { walls: THREE.Textur
 
   const textures = useTexture(TEXTURE_URLS);
 
-  // Configure textures
+  // Configure textures with optimized settings
+  // Floor: Wood texture
   textures.floor.wrapS = textures.floor.wrapT = THREE.RepeatWrapping;
   textures.floor.repeat.set(8, 30);
   textures.floor.colorSpace = THREE.SRGBColorSpace;
+  textures.floor.generateMipmaps = true;
+  textures.floor.minFilter = THREE.LinearMipmapLinearFilter;
 
+  // Walls: Onyx texture
   textures.walls.wrapS = textures.walls.wrapT = THREE.RepeatWrapping;
   textures.walls.repeat.set(2, 4);
   textures.walls.colorSpace = THREE.SRGBColorSpace;
+  textures.walls.generateMipmaps = true;
+  textures.walls.minFilter = THREE.LinearMipmapLinearFilter;
 
+  // Ceiling: Ceiling texture
   textures.ceiling.wrapS = textures.ceiling.wrapT = THREE.RepeatWrapping;
   textures.ceiling.repeat.set(10, 30);
   textures.ceiling.colorSpace = THREE.SRGBColorSpace;
+  textures.ceiling.generateMipmaps = true;
+  textures.ceiling.minFilter = THREE.LinearMipmapLinearFilter;
 
   return <>{children(textures)}</>;
 }
