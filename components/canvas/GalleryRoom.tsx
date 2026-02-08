@@ -21,7 +21,7 @@ function RoomTextures({ children }: { children: (textures: { walls: THREE.Textur
   const TEXTURE_URLS = {
     walls: 'https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/Marble006_4K-PNG_Color.png',
     floor: 'https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/Wood.png',
-    ceiling: 'https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/Onyx004_4K-PNG_Color.png',
+    ceiling: 'https://gvzjlvwqyvbmbczmqggk.supabase.co/storage/v1/object/public/gallery-images/Onyx015_4K-PNG_Color.png',
   };
 
   const textures = useTexture(TEXTURE_URLS);
